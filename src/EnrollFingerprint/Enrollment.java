@@ -8,7 +8,7 @@ package EnrollFingerprint;
 import javax.swing.JApplet;
 
 /**
- *
+ * Size: width=700, height=360
  * @author AlejoDesktop
  */
 public class Enrollment extends JApplet {
