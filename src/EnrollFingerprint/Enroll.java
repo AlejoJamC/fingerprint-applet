@@ -5,11 +5,24 @@
  */
 package EnrollFingerprint;
 
+import com.digitalpersona.onetouch.*;
+import com.digitalpersona.onetouch.capture.*;
+import com.digitalpersona.onetouch.capture.event.*;
+import com.digitalpersona.onetouch.processing.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author AlejoDesktop
  */
 public class Enroll extends javax.swing.JFrame {
+    
+    private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
+    private DPFPEnrollment enroller = DPFPGlobal.getEnrollmentFactory().createEnrollment();
 
     /**
      * Creates new form Enroll
