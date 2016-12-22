@@ -70,6 +70,10 @@ public class Enroll extends javax.swing.JFrame {
         ));
     }
     
+    private void updateStatus(){
+        setStatus(String.format("Toma de huella requiridas: %1$s", enroller.getFeaturesNeeded()));
+    }
+    
     protected Image convertSampleToBitmap(DPFPSample sample){
         return DPFPGlobal.getSampleConversionFactory().createImage(sample);
     }
