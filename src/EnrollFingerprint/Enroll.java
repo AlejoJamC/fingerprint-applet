@@ -183,7 +183,7 @@ public class Enroll extends javax.swing.JFrame {
     }
     
     public void makeReport(String string){
-        txtLog.append(string);
+        txtLog.append(string + "\n");
     }
     
     public void drawPicture(Image image) {
