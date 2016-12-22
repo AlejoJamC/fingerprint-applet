@@ -31,6 +31,23 @@ public class Enroll extends javax.swing.JFrame {
         initComponents();
     }
     
+    protected void init(){
+        
+    }
+    
+    protected void process(DPFPSample sample){
+        drawPicture(convertSampleToBitmap(sample));
+    }
+    
+    protected void start(){
+        capturer.startCapture();
+        setPrompt("Scanner de huellas listo a usarse, por favor introduzca la huella.");
+    }
+    
+    protected void stop(){
+        capturer.stopCapture();
+    }
+    
     public void setStatus(String string){
         lblStatus.setText(string);
     }
