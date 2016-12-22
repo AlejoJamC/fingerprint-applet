@@ -33,6 +33,25 @@ public class Enroll extends javax.swing.JFrame {
      */
     public Enroll() {
         initComponents();
+        updateStatus();
+        
+       // Event listener actived when fingerprint template is ready
+       this.addPropertyChangeListener(TEMPLATE_PROPERTY, new PropertyChangeListener(){
+           public void propertyChange(PropertyChangeEvent evt){
+               btnSave.setEnabled(template != null);
+               if(evt.getNewValue() == evt.getOldValue()){
+                   return;
+               }
+               if(template != null){
+                   JOptionPane.showMessageDialog(
+                           Enroll.this,
+                           "La huella capturada esta lista para ser guardada.",
+                           "Captura y Registro de huellas",
+                           JOptionPane.INFORMATION_MESSAGE
+                   );
+               }
+           }
+       });
     }
     
     protected void init(){
