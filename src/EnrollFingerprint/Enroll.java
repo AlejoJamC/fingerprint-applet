@@ -32,7 +32,71 @@ public class Enroll extends javax.swing.JFrame {
     }
     
     protected void init(){
+        capturer.addDataListener(new DPFPDataAdapter(){
+            @Override public void  dataAcquired(final DPFPDataEvent e){
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        makeReport("La huella fue capturada.");
+                        setPrompt("Escanear la misma huella de nuevo.");
+                        process(e.getSample());
+                    }
+                });
+            }
+        });
         
+        capturer.addReaderStatusListener(new DPFPReaderStatusAdapter(){
+            @Override public void  readerConnected(final DPFPReaderStatusEvent e){
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        makeReport("Lector de huellas conectado.");
+                    }
+                });
+            }
+            @Override public void readerDisconnected(final DPFPReaderStatusEvent e){
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        makeReport("Lector de huellas desconectado.");
+                    }
+                });
+            }
+        });
+        
+        capturer.addSensorListener(new DPFPSensorAdapter(){
+            @Override public void fingerTouched(final DPFPSensorEvent e){
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        makeReport("El escaner de huellas fue tocado.");
+                    }
+                });
+            }
+            @Override public void fingerGone(final DPFPSensorEvent e){
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        makeReport("El dedo fue retirado del escaner de huellas.");
+                    }
+                });
+            }
+        });
+        
+        capturer.addImageQualityListener(new DPFPImageQualityAdapter(){
+            @Override public void onImageQuality(final DPFPImageQualityEvent e){
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(e.getFeedback().equals(DPFPCaptureFeedback.CAPTURE_FEEDBACK_GOOD)){
+                            makeReport("La calidad de la huella escaneada es buena.");
+                        }else{
+                            makeReport("La calidad de la huella escaneada es pobre.");
+                        }
+                    }
+                });
+            }            
+        });
     }
     
     protected void process(DPFPSample sample){
