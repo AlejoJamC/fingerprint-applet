@@ -123,7 +123,46 @@ public class Enroll extends javax.swing.JFrame {
     }
     
     protected void process(DPFPSample sample){
+        // Show the fingerprint image.
         drawPicture(convertSampleToBitmap(sample));
+        // Process the fingerprint and create a feature set form the enrollment purpose.
+        DPFPFeatureSet features = extractFeatures(sample, DPFPDataPurpose.DATA_PURPOSE_ENROLLMENT);
+        
+        // Check quality of the fingerprint and add to enroller if it's good.
+        if(features != null) {
+            try {
+                makeReport("Creada la caracterización de la huella.");
+                enroller.addFeatures(features);
+            } catch (DPFPImageQualityException e) {}
+            finally{
+                updateStatus();
+                
+                // Check if a template has been created.
+                switch(enroller.getTemplateStatus()){
+                    case TEMPLATE_STATUS_READY:
+                        stop();
+                        setTemplate(enroller.getTemplate());
+                        setPrompt("Huela lista para verificar.");
+                        btnRead.setEnabled(false);
+                        break;
+                    
+                    case TEMPLATE_STATUS_FAILED:
+                        enroller.clear();
+                        stop();
+                        updateStatus();
+                        setTemplate(null);
+                        JOptionPane.showMessageDialog(Enroll.this,
+                                "La huella capturada no es validad, repita el registro.",
+                                "Captura y Registro de huellas", JOptionPane.ERROR_MESSAGE
+                        );
+                        start();
+                        break;
+                        
+                }
+            }
+        }
+        
+
     }
     
     protected void start(){
