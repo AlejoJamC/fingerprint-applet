@@ -11,6 +11,8 @@ import com.digitalpersona.onetouch.capture.event.*;
 import com.digitalpersona.onetouch.processing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -21,6 +23,8 @@ import javax.swing.JOptionPane;
  */
 public class Enroll extends javax.swing.JFrame {
     
+    public static String TEMPLATE_PROPERTY = "template";
+    private DPFPTemplate template;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
     private DPFPEnrollment enroller = DPFPGlobal.getEnrollmentFactory().createEnrollment();
 
