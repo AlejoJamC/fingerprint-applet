@@ -37,6 +37,7 @@ public class Enrollment extends JApplet {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         lblConsole1 = new javax.swing.JLabel();
+        btnRead = new javax.swing.JButton();
 
         jPanelBackground.setBackground(new java.awt.Color(238, 241, 245));
 
@@ -76,6 +77,7 @@ public class Enrollment extends JApplet {
         );
 
         btnSave.setText("Guardar");
+        btnSave.setEnabled(false);
 
         btnCancel.setText("Cancelar");
 
@@ -113,6 +115,8 @@ public class Enrollment extends JApplet {
                 .addContainerGap())
         );
 
+        btnRead.setText("Leer Huella");
+
         javax.swing.GroupLayout jPanelBackgroundLayout = new javax.swing.GroupLayout(jPanelBackground);
         jPanelBackground.setLayout(jPanelBackgroundLayout);
         jPanelBackgroundLayout.setHorizontalGroup(
@@ -128,6 +132,8 @@ public class Enrollment extends JApplet {
                             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelBackgroundLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnRead)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnSave)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnCancel)))
@@ -146,7 +152,8 @@ public class Enrollment extends JApplet {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
                 .addGroup(jPanelBackgroundLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
-                    .addComponent(btnSave))
+                    .addComponent(btnSave)
+                    .addComponent(btnRead))
                 .addContainerGap())
         );
 
@@ -164,6 +171,7 @@ public class Enrollment extends JApplet {
 
     // Variables declaration - do not modify                     
     private javax.swing.JButton btnCancel;
+    private javax.swing.JButton btnRead;
     private javax.swing.JButton btnSave;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JPanel jPanel1;
