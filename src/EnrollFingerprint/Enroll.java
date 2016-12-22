@@ -30,6 +30,41 @@ public class Enroll extends javax.swing.JFrame {
     public Enroll() {
         initComponents();
     }
+    
+    public void setStatus(String string){
+        lblStatus.setText(string);
+    }
+    
+    public void setPrompt(String string){
+        txtConsole.setText(string);
+    }
+    
+    public void makeReport(String string){
+        txtLog.append(string);
+    }
+    
+    public void drawPicture(Image image) {
+        picFingerprint.setIcon(new ImageIcon(
+                image.getScaledInstance(
+                        picFingerprint.getWidth(), 
+                        picFingerprint.getHeight(), 
+                        Image.SCALE_DEFAULT
+                )
+        ));
+    }
+    
+    protected Image convertSampleToBitmap(DPFPSample sample){
+        return DPFPGlobal.getSampleConversionFactory().createImage(sample);
+    }
+    
+    protected DPFPFeatureSet extractFeatures(DPFPSample sample, DPFPDataPurpose purpose){
+        DPFPFeatureExtraction extractor = DPFPGlobal.getFeatureExtractionFactory().createFeatureExtraction();
+        try {
+            return extractor.createFeatureSet(sample, purpose);
+        } catch (DPFPImageQualityException e){
+            return null;
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
