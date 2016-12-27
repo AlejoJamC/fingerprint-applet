@@ -24,7 +24,7 @@ import java.sql.SQLException;
  *
  * @author AlejoDesktop
  */
-public class Enroll extends javax.swing.JFrame {
+public class Verify extends javax.swing.JFrame {
     
     // Connection string format = jdbc:oracle:<drivertype>:<user>/<password>@<database>
     public static String connectionString = "jdbc:oracle:thin:analytics/qwerty@172.28.128.4:1521/XE";
@@ -36,7 +36,7 @@ public class Enroll extends javax.swing.JFrame {
     /**
      * Creates new form Enroll
      */
-    public Enroll() {
+    public Verify() {
         initComponents();
         updateStatus();
         
@@ -48,8 +48,7 @@ public class Enroll extends javax.swing.JFrame {
                    return;
                }
                if(template != null){
-                   JOptionPane.showMessageDialog(
-                           Enroll.this,
+                   JOptionPane.showMessageDialog(Verify.this,
                            "La huella capturada esta lista para ser guardada.",
                            "Captura y Registro de huellas",
                            JOptionPane.INFORMATION_MESSAGE
@@ -156,7 +155,7 @@ public class Enroll extends javax.swing.JFrame {
                         stop();
                         updateStatus();
                         setTemplate(null);
-                        JOptionPane.showMessageDialog(Enroll.this,
+                        JOptionPane.showMessageDialog(Verify.this,
                                 "La huella capturada no es validad, repita el registro.",
                                 "Captura y Registro de huellas", JOptionPane.ERROR_MESSAGE
                         );
@@ -474,20 +473,21 @@ public class Enroll extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Enroll.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Verify.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Enroll.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Verify.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Enroll.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Verify.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Enroll.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Verify.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new Enroll().setVisible(true);
+                new Verify().setVisible(true);
             }
         });
     }
