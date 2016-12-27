@@ -16,6 +16,9 @@ import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  *
@@ -23,6 +26,8 @@ import javax.swing.JOptionPane;
  */
 public class Enroll extends javax.swing.JFrame {
     
+    // Connection string format = jdbc:oracle:<drivertype>:<user>/<password>@<database>
+    public static String connectionString = "jdbc:oracle:thin:analytics/qwerty@172.28.128.4:1521/XE";
     public static String TEMPLATE_PROPERTY = "template";
     private DPFPTemplate template;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
