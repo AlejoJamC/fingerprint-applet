@@ -202,13 +202,14 @@ public class Enroll extends javax.swing.JFrame {
     }
     
     public DPFPTemplate getTemplate() {
-		return template;
-	}
-	public void setTemplate(DPFPTemplate template) {
-		DPFPTemplate old = this.template;
-		this.template = template;
-		firePropertyChange(TEMPLATE_PROPERTY, old, template);
-	}
+        return template;
+    }
+    
+    public void setTemplate(DPFPTemplate template) {
+        DPFPTemplate old = this.template;
+        this.template = template;
+        firePropertyChange(TEMPLATE_PROPERTY, old, template);
+    }
     
     private void updateStatus(){
         setStatus(String.format("Toma de huella requiridas: %1$s", enroller.getFeaturesNeeded()));
