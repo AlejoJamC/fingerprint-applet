@@ -226,6 +226,34 @@ public class Enroll extends javax.swing.JFrame {
             return null;
         }
     }
+    
+    public void testOracle(){
+        Connection conn = null;
+        try {
+            //DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+            Class.forName("oracle.jdbc.OracleDriver");
+            conn = DriverManager.getConnection(connectionString);
+            if(conn != null){
+                System.out.println("Conexion con Oracle exitosa!.");
+            }else{
+                System.out.println("Error conectandoce a Oracle Local");
+            }
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (conn != null && !conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+        
+        
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -411,6 +439,7 @@ public class Enroll extends javax.swing.JFrame {
         init();
         updateStatus();
         start();
+        //testOracle();
     }//GEN-LAST:event_btnReadActionPerformed
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
