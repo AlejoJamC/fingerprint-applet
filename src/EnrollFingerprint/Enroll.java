@@ -407,6 +407,16 @@ public class Enroll extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_btnCancelActionPerformed
 
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        // Page 36 -37 Serialization / Deserialization
+        System.err.println(getTemplate());
+        byte[] fpdata = getTemplate().serialize();
+        System.err.println(fpdata);
+        DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
+        temp.deserialize(fpdata);
+        System.err.println(temp);
+    }//GEN-LAST:event_btnSaveActionPerformed
+
     /**
      * @param args the command line arguments
      */
