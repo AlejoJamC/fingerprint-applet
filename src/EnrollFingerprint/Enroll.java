@@ -19,13 +19,20 @@ import javax.swing.JOptionPane;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.io.IOException;
 
+import okhttp3.OkHttpClient;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 /**
  *
  * @author AlejoDesktop
  */
 public class Enroll extends javax.swing.JFrame {
     
+    private String apiComposition = "YWRtaW46MTIzNDU=";
     // Connection string format = jdbc:oracle:<drivertype>:<user>/<password>@<database>
     public static String connectionString = "jdbc:oracle:thin:analytics/qwerty@172.28.128.4:1521/XE";
     public static String TEMPLATE_PROPERTY = "template";
@@ -255,7 +262,15 @@ public class Enroll extends javax.swing.JFrame {
         
         
     }
-
+    
+    String createJSON(byte[] fingerprint, String personId, String fingerprintNumber){
+        return "{"
+                + "\"personId\": \"" + personId + "\","
+                + "\"fingerprint\": \"" + fingerprint + "\","
+                + "\"fingerprintNumber\": \"" + fingerprintNumber + "\""
+                + "}";
+    }
+     
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -449,12 +464,22 @@ public class Enroll extends javax.swing.JFrame {
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // Page 36 -37 Serialization / Deserialization
-        System.err.println(getTemplate());
+        //System.err.println(getTemplate());
         byte[] fpdata = getTemplate().serialize();
-        System.err.println(fpdata);
+        //System.err.println(fpdata);
+        String fpjson = createJSON(fpdata, "1", "1");
+        
+        System.out.println(fpjson);
+        
+        try {
+            new Requestor().postFingerprint("http://localhost:3012/api/v1/fingerprints", fpjson);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+                        
         DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
         temp.deserialize(fpdata);
-        System.err.println(temp);
+        //System.err.println(temp);
     }//GEN-LAST:event_btnSaveActionPerformed
 
     /**
@@ -490,6 +515,24 @@ public class Enroll extends javax.swing.JFrame {
                 new Enroll().setVisible(true);
             }
         });
+    }
+    
+    public class Requestor{
+        public MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        public OkHttpClient client = new OkHttpClient();
+        
+        String postFingerprint(String url, String json) throws IOException {
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .header("Authorization", "Basic " + apiComposition)
+                    .url(url) 
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                System.out.println(response.body().string());
+                return response.body().string();
+            } 
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
