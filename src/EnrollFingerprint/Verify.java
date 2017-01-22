@@ -19,6 +19,11 @@ import javax.swing.JOptionPane;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.io.IOException;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  *
@@ -26,6 +31,8 @@ import java.sql.SQLException;
  */
 public class Verify extends javax.swing.JFrame {
     
+    private String apiComposition = "YWRtaW46MTIzNDU=";
+    public String jsonres = "vacio";
     // Connection string format = jdbc:oracle:<drivertype>:<user>/<password>@<database>
     public static String connectionString = "jdbc:oracle:thin:analytics/qwerty@172.28.128.4:1521/XE";
     public static String TEMPLATE_PROPERTY = "template";
@@ -38,12 +45,11 @@ public class Verify extends javax.swing.JFrame {
      */
     public Verify() {
         initComponents();
-        updateStatus();
+        //updateStatus();
         
        // Event listener actived when fingerprint template is ready
        this.addPropertyChangeListener(TEMPLATE_PROPERTY, new PropertyChangeListener(){
            public void propertyChange(PropertyChangeEvent evt){
-               btnSave.setEnabled(template != null);
                if(evt.getNewValue() == evt.getOldValue()){
                    return;
                }
@@ -124,6 +130,7 @@ public class Verify extends javax.swing.JFrame {
                 });
             }            
         });
+        
     }
     
     protected void process(DPFPSample sample){
@@ -139,7 +146,7 @@ public class Verify extends javax.swing.JFrame {
                 enroller.addFeatures(features);
             } catch (DPFPImageQualityException e) {}
             finally{
-                updateStatus();
+                //updateStatus();
                 
                 // Check if a template has been created.
                 switch(enroller.getTemplateStatus()){
@@ -153,7 +160,7 @@ public class Verify extends javax.swing.JFrame {
                     case TEMPLATE_STATUS_FAILED:
                         enroller.clear();
                         stop();
-                        updateStatus();
+                        //updateStatus();
                         setTemplate(null);
                         JOptionPane.showMessageDialog(Verify.this,
                                 "La huella capturada no es validad, repita el registro.",
@@ -210,8 +217,8 @@ public class Verify extends javax.swing.JFrame {
         firePropertyChange(TEMPLATE_PROPERTY, old, template);
     }
     
-    private void updateStatus(){
-        setStatus(String.format("Toma de huella requiridas: %1$s", enroller.getFeaturesNeeded()));
+    private void updateStatus(int FAR){
+        setStatus(String.format("Calidad de la muestra: %1$s", FAR));
     }
     
     protected Image convertSampleToBitmap(DPFPSample sample){
@@ -270,7 +277,6 @@ public class Verify extends javax.swing.JFrame {
         jPanelConsole = new javax.swing.JPanel();
         txtConsole = new javax.swing.JTextField();
         lblConsole = new javax.swing.JLabel();
-        btnSave = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         jPanelLog = new javax.swing.JPanel();
         JScrollPane1 = new javax.swing.JScrollPane();
@@ -320,14 +326,6 @@ public class Verify extends javax.swing.JFrame {
                 .addContainerGap(15, Short.MAX_VALUE))
         );
 
-        btnSave.setText("Guardar");
-        btnSave.setEnabled(false);
-        btnSave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSaveActionPerformed(evt);
-            }
-        });
-
         btnCancel.setText("Cancelar");
         btnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -369,7 +367,7 @@ public class Verify extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        btnRead.setText("Leer Huella");
+        btnRead.setText("Verificar Huella");
         btnRead.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnReadActionPerformed(evt);
@@ -397,8 +395,6 @@ public class Verify extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnRead)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnSave)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnCancel)))
                 .addContainerGap())
         );
@@ -415,7 +411,6 @@ public class Verify extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
                 .addGroup(jPanelBackgroundLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
-                    .addComponent(btnSave)
                     .addComponent(btnRead)
                     .addComponent(lblStatus))
                 .addContainerGap())
@@ -437,24 +432,25 @@ public class Verify extends javax.swing.JFrame {
 
     private void btnReadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReadActionPerformed
         init();
-        updateStatus();
+        //updateStatus();
         start();
         //testOracle();
+        // Load the fingerprints for the current user
+        try {
+            Requestor requestor = new Requestor();
+            System.out.println(jsonres);
+            jsonres = requestor.getFingerprints("http://localhost:3012/api/v1/fingerprints?personId=1");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        finally{
+            System.out.println(jsonres);
+        }
     }//GEN-LAST:event_btnReadActionPerformed
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
         System.exit(0);
     }//GEN-LAST:event_btnCancelActionPerformed
-
-    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        // Page 36 -37 Serialization / Deserialization
-        System.err.println(getTemplate());
-        byte[] fpdata = getTemplate().serialize();
-        System.err.println(fpdata);
-        DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
-        temp.deserialize(fpdata);
-        System.err.println(temp);
-    }//GEN-LAST:event_btnSaveActionPerformed
 
     /**
      * @param args the command line arguments
@@ -491,12 +487,25 @@ public class Verify extends javax.swing.JFrame {
             }
         });
     }
+    
+    public class Requestor{
+        public OkHttpClient client = new OkHttpClient();
+        
+        String getFingerprints(String url) throws IOException{
+            Request request = new Request.Builder()
+                    .header("Authorization", "Basic " + apiComposition)
+                    .url(url) 
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                return response.body().string();
+            } 
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane JScrollPane1;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnRead;
-    private javax.swing.JButton btnSave;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JPanel jPanelBackground;
     private javax.swing.JPanel jPanelConsole;
