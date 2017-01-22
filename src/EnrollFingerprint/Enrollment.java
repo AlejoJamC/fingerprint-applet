@@ -17,6 +17,16 @@ import javax.swing.*;
 import javax.swing.JApplet;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.io.IOException;
+
+import okhttp3.OkHttpClient;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  *
@@ -24,6 +34,7 @@ import javax.swing.JOptionPane;
  */
 public class Enrollment extends JApplet {
     
+    private String apiComposition = "YWRtaW46MTIzNDU=";
     public static String TEMPLATE_PROPERTY = "template";
     private DPFPTemplate template;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
@@ -219,6 +230,14 @@ public class Enrollment extends JApplet {
             return null;
         }
     }
+    
+    String createJSON(byte[] fingerprint, String personId, String fingerprintNumber){
+        return "{"
+                + "\"personId\": \"" + personId + "\","
+                + "\"fingerprint\": \"" + fingerprint + "\","
+                + "\"fingerprintNumber\": \"" + fingerprintNumber + "\""
+                + "}";
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -283,6 +302,11 @@ public class Enrollment extends JApplet {
 
         btnSave.setText("Guardar");
         btnSave.setEnabled(false);
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         btnCancel.setText("Cancelar");
         btnCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -388,7 +412,7 @@ public class Enrollment extends JApplet {
             .addComponent(jPanelBackground, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-    }// </editor-fold>                        
+    }// </editor-fold>                          
 
     private void btnReadActionPerformed(java.awt.event.ActionEvent evt) {                                        
         //init();
@@ -398,7 +422,45 @@ public class Enrollment extends JApplet {
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {                                          
         System.exit(0);
-    }                                         
+    }      
+    
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {                                        
+        // Page 36 -37 Serialization / Deserialization
+        //System.err.println(getTemplate());
+        byte[] fpdata = getTemplate().serialize();
+        //System.err.println(fpdata);
+        String fpjson = createJSON(fpdata, "1", "1");
+        
+        System.out.println(fpjson);
+        
+        try {
+            new Requestor().postFingerprint("http://localhost:3012/api/v1/fingerprints", fpjson);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+                        
+        DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
+        temp.deserialize(fpdata);
+        //System.err.println(temp);
+    }
+    
+    public class Requestor{
+        public MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        public OkHttpClient client = new OkHttpClient();
+        
+        String postFingerprint(String url, String json) throws IOException {
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .header("Authorization", "Basic " + apiComposition)
+                    .url(url) 
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                System.out.println(response.body().string());
+                return response.body().string();
+            } 
+        }
+    }
 
     // Variables declaration - do not modify                     
     private javax.swing.JScrollPane JScrollPane1;
@@ -415,6 +477,6 @@ public class Enrollment extends JApplet {
     private javax.swing.JLabel picFingerprint;
     private javax.swing.JTextField txtConsole;
     private javax.swing.JTextArea txtLog;
-    // End of variables declaration                   
+    // End of variables declaration                    
 }
 
