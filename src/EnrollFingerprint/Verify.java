@@ -5,10 +5,13 @@
  */
 package EnrollFingerprint;
 
+import Enrollment.MainForm;
 import com.digitalpersona.onetouch.*;
 import com.digitalpersona.onetouch.capture.*;
 import com.digitalpersona.onetouch.capture.event.*;
 import com.digitalpersona.onetouch.processing.*;
+import com.digitalpersona.onetouch.verification.DPFPVerification;
+import com.digitalpersona.onetouch.verification.DPFPVerificationResult;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -25,6 +28,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.ParseException;
+import org.json.simple.parser.JSONParser;
+
 /**
  *
  * @author AlejoDesktop
@@ -37,8 +45,11 @@ public class Verify extends javax.swing.JFrame {
     public static String connectionString = "jdbc:oracle:thin:analytics/qwerty@172.28.128.4:1521/XE";
     public static String TEMPLATE_PROPERTY = "template";
     private DPFPTemplate template;
+    private DPFPTemplate templatefp1;
+    private DPFPTemplate templatefp2;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
     private DPFPEnrollment enroller = DPFPGlobal.getEnrollmentFactory().createEnrollment();
+    private DPFPVerification verificator = DPFPGlobal.getVerificationFactory().createVerification();
 
     /**
      * Creates new form Enroll
@@ -140,37 +151,15 @@ public class Verify extends javax.swing.JFrame {
         DPFPFeatureSet features = extractFeatures(sample, DPFPDataPurpose.DATA_PURPOSE_ENROLLMENT);
         
         // Check quality of the fingerprint and add to enroller if it's good.
-        if(features != null) {
-            try {
-                makeReport("Creada la caracterización de la huella.");
-                enroller.addFeatures(features);
-            } catch (DPFPImageQualityException e) {}
-            finally{
-                //updateStatus();
-                
-                // Check if a template has been created.
-                switch(enroller.getTemplateStatus()){
-                    case TEMPLATE_STATUS_READY:
-                        stop();
-                        setTemplate(enroller.getTemplate());
-                        setPrompt("Huela lista para verificar.");
-                        btnRead.setEnabled(false);
-                        break;
-                    
-                    case TEMPLATE_STATUS_FAILED:
-                        enroller.clear();
-                        stop();
-                        //updateStatus();
-                        setTemplate(null);
-                        JOptionPane.showMessageDialog(Verify.this,
-                                "La huella capturada no es validad, repita el registro.",
-                                "Captura y Registro de huellas", JOptionPane.ERROR_MESSAGE
-                        );
-                        start();
-                        break;
-                        
-                }
-            }
+        if (features != null)
+        {
+                // Compare the feature set with our template
+                DPFPVerificationResult result = verificator.verify(features, templatefp1);
+                updateStatus(result.getFalseAcceptRate());
+                if (result.isVerified())
+                        makeReport("The fingerprint was VERIFIED.");
+                else
+                        makeReport("The fingerprint was NOT VERIFIED.");
         }
         
 
@@ -282,8 +271,9 @@ public class Verify extends javax.swing.JFrame {
         JScrollPane1 = new javax.swing.JScrollPane();
         txtLog = new javax.swing.JTextArea();
         lblLog = new javax.swing.JLabel();
-        btnRead = new javax.swing.JButton();
+        btnVerify = new javax.swing.JButton();
         lblStatus = new javax.swing.JLabel();
+        btnFind = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Almacenar Huellas");
@@ -367,15 +357,23 @@ public class Verify extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        btnRead.setText("Verificar Huella");
-        btnRead.addActionListener(new java.awt.event.ActionListener() {
+        btnVerify.setText("Verificar Huella");
+        btnVerify.setEnabled(false);
+        btnVerify.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnReadActionPerformed(evt);
+                btnVerifyActionPerformed(evt);
             }
         });
 
         lblStatus.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         lblStatus.setText("Intentos");
+
+        btnFind.setText("Cargar Huellas");
+        btnFind.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFindActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanelBackgroundLayout = new javax.swing.GroupLayout(jPanelBackground);
         jPanelBackground.setLayout(jPanelBackgroundLayout);
@@ -393,7 +391,9 @@ public class Verify extends javax.swing.JFrame {
                     .addGroup(jPanelBackgroundLayout.createSequentialGroup()
                         .addComponent(lblStatus)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnRead)
+                        .addComponent(btnFind)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnVerify)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnCancel)))
                 .addContainerGap())
@@ -411,10 +411,13 @@ public class Verify extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
                 .addGroup(jPanelBackgroundLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
-                    .addComponent(btnRead)
-                    .addComponent(lblStatus))
+                    .addComponent(btnVerify)
+                    .addComponent(lblStatus)
+                    .addComponent(btnFind))
                 .addContainerGap())
         );
+
+        btnFind.getAccessibleContext().setAccessibleName("Cargar Huellas");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -430,27 +433,65 @@ public class Verify extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnReadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReadActionPerformed
+    private void btnVerifyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVerifyActionPerformed
         init();
         //updateStatus();
         start();
         //testOracle();
-        // Load the fingerprints for the current user
-        try {
-            Requestor requestor = new Requestor();
-            System.out.println(jsonres);
-            jsonres = requestor.getFingerprints("http://localhost:3012/api/v1/fingerprints?personId=1");
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        finally{
-            System.out.println(jsonres);
-        }
-    }//GEN-LAST:event_btnReadActionPerformed
+    }//GEN-LAST:event_btnVerifyActionPerformed
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
         System.exit(0);
     }//GEN-LAST:event_btnCancelActionPerformed
+
+    private void btnFindActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFindActionPerformed
+        // Load the fingerprints for the current user
+        JSONParser jsonparser = new JSONParser();
+        try {
+            Requestor requestor = new Requestor();
+            //System.out.println(jsonres);
+            jsonres = requestor.getFingerprints("http://localhost:3012/api/v1/fingerprints?personId=1");
+            //System.out.println(jsonres);
+            // JSON parser to the response
+            //Object obj = jsonparser.parse(jsonres);
+            //System.out.println(obj);
+            System.out.println("the values of data element:");
+            JSONObject json = (JSONObject) jsonparser.parse(jsonres);
+            Object data = json.get("data");
+            System.out.println(data);
+            
+            String strdata = data.toString();
+            
+            JSONObject jsondata = (JSONObject) jsonparser.parse(strdata);
+            Object fp1 = jsondata.get("fingerprint1");
+            System.out.println(fp1);
+            
+            Object fp2 = jsondata.get("fingerprint2");
+            System.out.println(fp2);
+            
+            // Set DPFPTemplate with the values
+            if(fp1 != null){
+                templatefp1 = DPFPGlobal.getTemplateFactory().createTemplate();
+                templatefp1.deserialize(fp1.toString().getBytes());
+            }else{
+                templatefp2 = null;
+            }
+            
+            if(fp2 != null){
+                templatefp2 = DPFPGlobal.getTemplateFactory().createTemplate();
+                templatefp2.deserialize(fp2.toString().getBytes());
+            }else{
+                templatefp2 = null;
+            }
+            
+            btnVerify.setEnabled(true);
+            btnFind.setEnabled(false);
+            setPrompt("Huellas cargadas en memoria. Listas para ser verificadas.");
+            makeReport("Huellas listas para ser verificadas.");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }//GEN-LAST:event_btnFindActionPerformed
 
     /**
      * @param args the command line arguments
@@ -505,7 +546,8 @@ public class Verify extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane JScrollPane1;
     private javax.swing.JButton btnCancel;
-    private javax.swing.JButton btnRead;
+    private javax.swing.JButton btnFind;
+    private javax.swing.JButton btnVerify;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JPanel jPanelBackground;
     private javax.swing.JPanel jPanelConsole;
