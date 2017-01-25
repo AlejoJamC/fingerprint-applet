@@ -477,8 +477,8 @@ public class Enroll extends javax.swing.JFrame {
             System.out.println(e);
         }
                         
-        DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
-        temp.deserialize(fpdata);
+        //DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
+        //temp.deserialize(fpdata);
         //System.err.println(temp);
     }//GEN-LAST:event_btnSaveActionPerformed
 
