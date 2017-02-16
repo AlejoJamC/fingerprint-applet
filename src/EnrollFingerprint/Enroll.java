@@ -470,23 +470,21 @@ public class Enroll extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCancelActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        // Page 36 -37 Serialization / Deserialization
-        //System.err.println(getTemplate());
-        byte[] fpdata = getTemplate().serialize();
-        //System.err.println(fpdata);
-        String fpjson = createJSON(fpdata, "1", "1");
-        
-        System.out.println(fpjson);
-        
         try {
-            new Requestor().postFingerprint("http://localhost:3012/api/v1/fingerprints", fpjson);
+            // Page 36 -37 Serialization / Deserialization
+            // Escribo un archivo en memoria
+            ByteArrayOutputStream fileInMemory = new ByteArrayOutputStream();
+            fileInMemory.write(getTemplate().serialize());
+            fpglobal = fileInMemory;
+            
+            // Codifico el ByteArray de memoria en Base64
+            byte[] fpdata = Base64.getEncoder().encode(fpglobal.toByteArray());
+            
+            String apiURL = "http://localhost:3012/api/v1/fingerprints";
+            new Requestor().postFingerprint(apiURL, fpdata, "1", "1");
         } catch (Exception e) {
             System.out.println(e);
         }
-                        
-        //DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
-        //temp.deserialize(fpdata);
-        //System.err.println(temp);
     }//GEN-LAST:event_btnSaveActionPerformed
 
     /**
