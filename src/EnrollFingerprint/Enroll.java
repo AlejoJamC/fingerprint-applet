@@ -45,6 +45,7 @@ public class Enroll extends javax.swing.JFrame {
     private DPFPTemplate template;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
     private DPFPEnrollment enroller = DPFPGlobal.getEnrollmentFactory().createEnrollment();
+    public ByteArrayOutputStream fpglobal = null;
 
     /**
      * Creates new form Enroll
@@ -269,7 +270,7 @@ public class Enroll extends javax.swing.JFrame {
         
     }
     
-    String createJSON(byte[] fingerprint, String personId, String fingerprintNumber){
+    String createJSON(String fingerprint, String personId, String fingerprintNumber){
         return "{"
                 + "\"personId\": \"" + personId + "\","
                 + "\"fingerprint\": \"" + fingerprint + "\","
