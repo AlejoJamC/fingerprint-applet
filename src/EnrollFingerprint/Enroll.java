@@ -550,6 +550,32 @@ public class Enroll extends javax.swing.JFrame {
                 return response.body().string();
             } 
         }
+                
+        String postFingerprintBase64(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
+            System.out.println(data.toString());
+            String base64String = Base64.getEncoder().encodeToString(data);
+            System.out.println(base64String);
+            String json = createJSON(base64String, personId, fingerprintNumber);
+            RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
+            Request request = new Request.Builder()
+                    .header("Authorization", "Basic " + apiComposition)
+                    .url(url) 
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                System.out.println(response.body().string());
+                return response.body().string();
+            } 
+        }
+        
+        String postFingerprintMultipart(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
+            RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("fingerprint", "fingerprint", RequestBody.create(MEDIA_TYPE_JPG, data))
+                .addFormDataPart("personId", personId)
+                .addFormDataPart("fingerprintNumber", fingerprintNumber)
+                .build();
+                
             Request request = new Request.Builder()
                     .header("Authorization", "Basic " + apiComposition)
                     .url(url) 
