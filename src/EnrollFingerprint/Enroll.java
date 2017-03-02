@@ -478,10 +478,11 @@ public class Enroll extends javax.swing.JFrame {
             fpglobal = fileInMemory;
             
             // Codifico el ByteArray de memoria en Base64
-            byte[] fpdata = Base64.getEncoder().encode(fpglobal.toByteArray());
+            //byte[] fpdata = Base64.getEncoder().encode(fpglobal.toByteArray());
+            byte[] fpdata = getTemplate().serialize();
             
             String apiURL = "http://localhost:3012/api/v1/fingerprints";
-            new Requestor().postFingerprint(apiURL, fpdata, "1", "1");
+            new Requestor().postFingerprintMultipart(apiURL, fpdata, "1", "1");
         } catch (Exception e) {
             System.out.println(e);
         }
