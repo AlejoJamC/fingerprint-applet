@@ -38,7 +38,7 @@ import org.json.simple.JSONObject;
  */
 public class Enroll extends javax.swing.JFrame {
     
-    private String apiComposition = "YWRtaW46MTIzNDU=";
+    private String apiComposition = "MTox";
     // Connection string format = jdbc:oracle:<drivertype>:<user>/<password>@<database>
     public static String connectionString = "jdbc:oracle:thin:analytics/qwerty@172.28.128.4:1521/XE";
     public static String TEMPLATE_PROPERTY = "template";
@@ -524,6 +524,7 @@ public class Enroll extends javax.swing.JFrame {
     
     public class Requestor{
         public MediaType MEDIA_TYPE_JPG  = MediaType.parse("image/jpg");
+        public MediaType MEDIA_TYPE_APPLICATION  = MediaType.parse("application/octet-stream");
         public MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
         public OkHttpClient client = new OkHttpClient();
         
@@ -571,9 +572,9 @@ public class Enroll extends javax.swing.JFrame {
         String postFingerprintMultipart(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
             RequestBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("fingerprint", "fingerprint", RequestBody.create(MEDIA_TYPE_JPG, data))
                 .addFormDataPart("personId", personId)
                 .addFormDataPart("fingerprintNumber", fingerprintNumber)
+                .addFormDataPart("fingerprint", "fingerprint", RequestBody.create(MEDIA_TYPE_APPLICATION, data))
                 .build();
                 
             Request request = new Request.Builder()
