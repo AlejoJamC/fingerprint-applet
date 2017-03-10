@@ -559,48 +559,7 @@ public class Enroll extends javax.swing.JFrame {
         public MediaType MEDIA_TYPE_APPLICATION  = MediaType.parse("application/octet-stream");
         public MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
         public OkHttpClient client = new OkHttpClient();
-        
-        String postFingerprint(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
-            //System.out.println(data.toString());
-            String database64string = new sun.misc.BASE64Encoder().encode(data);
-            
-            //String json = createJSON(database64string, personId, fingerprintNumber);
-            //System.out.println(json);
-            
-            JSONObject json = new JSONObject();
-            json.put("personId", personId);
-            json.put("fingerprint", database64string);
-            json.put("fingerprintNumber", fingerprintNumber);
-                        
-            RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json.toString());
-            Request request = new Request.Builder()
-                    .header("Authorization", "Basic " + apiComposition)
-                    .url(url) 
-                    .post(body)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                System.out.println(response.body().string());
-                return response.body().string();
-            } 
-        }
-                
-        String postFingerprintBase64(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
-            //System.out.println(data.toString());
-            String base64String = Base64.getEncoder().encodeToString(data);
-            //System.out.println(base64String);
-            String json = createJSON(base64String, personId, fingerprintNumber);
-            RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
-            Request request = new Request.Builder()
-                    .header("Authorization", "Basic " + apiComposition)
-                    .url(url) 
-                    .post(body)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                //System.out.println(response.body().string());
-                return response.body().string();
-            } 
-        }
-        
+             
         String postFingerprintMultipart(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
             RequestBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
