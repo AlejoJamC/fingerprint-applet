@@ -13,8 +13,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import javax.swing.*;
-import javax.swing.JApplet;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import java.sql.Connection;
@@ -27,6 +29,13 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.FormBody;
+import okhttp3.MultipartBody;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -34,7 +43,9 @@ import okhttp3.Response;
  */
 public class Enrollment extends JApplet {
     
-    private String apiComposition = "YWRtaW46MTIzNDU=";
+    private String apiComposition = "MTox";
+    // Connection string format = jdbc:oracle:<drivertype>:<user>/<password>@<database>
+    public static String connectionString = "jdbc:oracle:thin:analytics/qwerty@172.28.128.4:1521/XE";
     public static String TEMPLATE_PROPERTY = "template";
     private DPFPTemplate template;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
@@ -62,7 +73,7 @@ public class Enrollment extends JApplet {
                }
            }
        });
-        
+    
         capturer.addDataListener(new DPFPDataAdapter(){
             @Override public void  dataAcquired(final DPFPDataEvent e){
                 SwingUtilities.invokeLater(new Runnable() {
@@ -176,7 +187,6 @@ public class Enrollment extends JApplet {
     public void start(){
         capturer.startCapture();
         setPrompt("Scanner de huellas listo a usarse, por favor introduzca la huella.");
-        btnRead.setEnabled(false);
     }
     
     public void stop(){
@@ -206,13 +216,14 @@ public class Enrollment extends JApplet {
     }
     
     public DPFPTemplate getTemplate() {
-		return template;
-	}
-	public void setTemplate(DPFPTemplate template) {
-		DPFPTemplate old = this.template;
-		this.template = template;
-		firePropertyChange(TEMPLATE_PROPERTY, old, template);
-	}
+        return template;
+    }
+    
+    public void setTemplate(DPFPTemplate template) {
+        DPFPTemplate old = this.template;
+        this.template = template;
+        firePropertyChange(TEMPLATE_PROPERTY, old, template);
+    }
     
     private void updateStatus(){
         setStatus(String.format("Toma de huella requiridas: %1$s", enroller.getFeaturesNeeded()));
@@ -230,15 +241,15 @@ public class Enrollment extends JApplet {
             return null;
         }
     }
-    
-    String createJSON(byte[] fingerprint, String personId, String fingerprintNumber){
+        
+    String createJSON(String fingerprint, String personId, String fingerprintNumber){
         return "{"
                 + "\"personId\": \"" + personId + "\","
                 + "\"fingerprint\": \"" + fingerprint + "\","
                 + "\"fingerprintNumber\": \"" + fingerprintNumber + "\""
                 + "}";
     }
-
+     
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -350,6 +361,7 @@ public class Enrollment extends JApplet {
         );
 
         btnRead.setText("Leer Huella");
+        btnRead.setEnabled(false);
         btnRead.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnReadActionPerformed(evt);
@@ -412,7 +424,7 @@ public class Enrollment extends JApplet {
             .addComponent(jPanelBackground, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-    }// </editor-fold>                          
+    }// </editor-fold>                        
 
     private void btnReadActionPerformed(java.awt.event.ActionEvent evt) {                                        
         //init();
@@ -422,41 +434,116 @@ public class Enrollment extends JApplet {
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {                                          
         System.exit(0);
-    }      
-    
+    }                                         
+
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {                                        
-        // Page 36 -37 Serialization / Deserialization
-        //System.err.println(getTemplate());
-        byte[] fpdata = getTemplate().serialize();
-        //System.err.println(fpdata);
-        String fpjson = createJSON(fpdata, "1", "1");
-        
-        System.out.println(fpjson);
-        
         try {
-            new Requestor().postFingerprint("http://localhost:3012/api/v1/fingerprints", fpjson);
+            //byte[] fpdata = Base64.getEncoder().encode(fpglobal.toByteArray());
+            byte[] fpdata = getTemplate().serialize();
+            JSONParser parser = new JSONParser();
+            
+            String apiURL = "http://localhost:3012/api/v1/fingerprints";
+            String response = new Requestor().postFingerprintMultipart(apiURL, fpdata, "1", "1");
+                      
+            //System.out.println(response);
+            
+            Object obj = parser.parse(response);
+
+            JSONObject jsonObject = (JSONObject) obj;
+            //System.out.println(jsonObject);
+            
+            // Get the code from the response
+            long codigo = (Long) jsonObject.get("code");
+            //System.out.println(codigo);
+
+            // Get de message from response
+            String mensaje = (String) jsonObject.get("message");
+            //System.out.println(mensaje);
+            
+            if(codigo == 200){
+                btnSave.setEnabled(false);
+                JOptionPane.showMessageDialog(
+                           Enrollment.this,
+                           mensaje,
+                           "Captura y Registro de huellas",
+                           JOptionPane.INFORMATION_MESSAGE
+                   );
+            }
+           
+         
         } catch (Exception e) {
             System.out.println(e);
+            JOptionPane.showMessageDialog(
+                           Enrollment.this,
+                           "Error guardando la huella, comuniquese con su administrador.",
+                           "Captura y Registro de huellas",
+                           JOptionPane.ERROR_MESSAGE
+            );
         }
-                        
-        DPFPTemplate temp = DPFPGlobal.getTemplateFactory().createTemplate();
-        temp.deserialize(fpdata);
-        //System.err.println(temp);
-    }
-    
+    }                                       
+
     public class Requestor{
-        public MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        public MediaType MEDIA_TYPE_JPG  = MediaType.parse("image/jpg");
+        public MediaType MEDIA_TYPE_APPLICATION  = MediaType.parse("application/octet-stream");
+        public MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
         public OkHttpClient client = new OkHttpClient();
         
-        String postFingerprint(String url, String json) throws IOException {
-            RequestBody body = RequestBody.create(JSON, json);
+        String postFingerprint(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
+            //System.out.println(data.toString());
+            String database64string = new sun.misc.BASE64Encoder().encode(data);
+            
+            //String json = createJSON(database64string, personId, fingerprintNumber);
+            //System.out.println(json);
+            
+            JSONObject json = new JSONObject();
+            json.put("personId", personId);
+            json.put("fingerprint", database64string);
+            json.put("fingerprintNumber", fingerprintNumber);
+                        
+            RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json.toString());
+            Request request = new Request.Builder()
+                    .header("Authorization", "Basic " + apiComposition)
+                    .url(url)
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                //System.out.println(response.body().string());
+                return response.body().string();
+            } 
+        }
+                
+        String postFingerprintBase64(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
+            //System.out.println(data.toString());
+            String base64String = Base64.getEncoder().encodeToString(data);
+            //System.out.println(base64String);
+            String json = createJSON(base64String, personId, fingerprintNumber);
+            RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
             Request request = new Request.Builder()
                     .header("Authorization", "Basic " + apiComposition)
                     .url(url) 
                     .post(body)
                     .build();
             try (Response response = client.newCall(request).execute()) {
-                System.out.println(response.body().string());
+                //System.out.println(response.body().string());
+                return response.body().string();
+            } 
+        }
+        
+        String postFingerprintMultipart(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
+            RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("personId", personId)
+                .addFormDataPart("fingerprintNumber", fingerprintNumber)
+                .addFormDataPart("fingerprint", "fingerprint", RequestBody.create(MEDIA_TYPE_APPLICATION, data))
+                .build();
+                
+            Request request = new Request.Builder()
+                    .header("Authorization", "Basic " + apiComposition)
+                    .url(url) 
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                //System.out.println(response.body().string());
                 return response.body().string();
             } 
         }
@@ -477,6 +564,5 @@ public class Enrollment extends JApplet {
     private javax.swing.JLabel picFingerprint;
     private javax.swing.JTextField txtConsole;
     private javax.swing.JTextArea txtLog;
-    // End of variables declaration                    
+    // End of variables declaration                   
 }
-
