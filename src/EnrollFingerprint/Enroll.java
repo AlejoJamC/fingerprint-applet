@@ -31,7 +31,12 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.FormBody;
 import okhttp3.MultipartBody;
+
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 /**
  *
  * @author AlejoDesktop
@@ -45,7 +50,6 @@ public class Enroll extends javax.swing.JFrame {
     private DPFPTemplate template;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
     private DPFPEnrollment enroller = DPFPGlobal.getEnrollmentFactory().createEnrollment();
-    public ByteArrayOutputStream fpglobal = null;
 
     /**
      * Creates new form Enroll
@@ -471,20 +475,47 @@ public class Enroll extends javax.swing.JFrame {
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         try {
-            // Page 36 -37 Serialization / Deserialization
-            // Escribo un archivo en memoria
-            ByteArrayOutputStream fileInMemory = new ByteArrayOutputStream();
-            fileInMemory.write(getTemplate().serialize());
-            fpglobal = fileInMemory;
-            
-            // Codifico el ByteArray de memoria en Base64
             //byte[] fpdata = Base64.getEncoder().encode(fpglobal.toByteArray());
             byte[] fpdata = getTemplate().serialize();
+            JSONParser parser = new JSONParser();
             
             String apiURL = "http://localhost:3012/api/v1/fingerprints";
-            new Requestor().postFingerprintMultipart(apiURL, fpdata, "1", "1");
+            String response = new Requestor().postFingerprintMultipart(apiURL, fpdata, "1", "1");
+                      
+            //System.out.println(response);
+            
+            Object obj = parser.parse(response);
+
+            JSONObject jsonObject = (JSONObject) obj;
+            //System.out.println(jsonObject);
+            
+            // Get the code from the response
+            long codigo = (Long) jsonObject.get("code");
+            //System.out.println(codigo);
+
+            // Get de message from response
+            String mensaje = (String) jsonObject.get("message");
+            //System.out.println(mensaje);
+            
+            if(codigo == 200){
+                btnSave.setEnabled(false);
+                JOptionPane.showMessageDialog(
+                           Enroll.this,
+                           mensaje,
+                           "Captura y Registro de huellas",
+                           JOptionPane.INFORMATION_MESSAGE
+                   );
+            }
+           
+         
         } catch (Exception e) {
             System.out.println(e);
+            JOptionPane.showMessageDialog(
+                           Enroll.this,
+                           "Error guardando la huella, comuniquese con su administrador.",
+                           "Captura y Registro de huellas",
+                           JOptionPane.ERROR_MESSAGE
+            );
         }
     }//GEN-LAST:event_btnSaveActionPerformed
 
@@ -554,9 +585,9 @@ public class Enroll extends javax.swing.JFrame {
         }
                 
         String postFingerprintBase64(String url, byte[] data, String personId, String fingerprintNumber) throws IOException {
-            System.out.println(data.toString());
+            //System.out.println(data.toString());
             String base64String = Base64.getEncoder().encodeToString(data);
-            System.out.println(base64String);
+            //System.out.println(base64String);
             String json = createJSON(base64String, personId, fingerprintNumber);
             RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
             Request request = new Request.Builder()
@@ -565,7 +596,7 @@ public class Enroll extends javax.swing.JFrame {
                     .post(body)
                     .build();
             try (Response response = client.newCall(request).execute()) {
-                System.out.println(response.body().string());
+                //System.out.println(response.body().string());
                 return response.body().string();
             } 
         }
@@ -584,7 +615,7 @@ public class Enroll extends javax.swing.JFrame {
                     .post(body)
                     .build();
             try (Response response = client.newCall(request).execute()) {
-                System.out.println(response.body().string());
+                //System.out.println(response.body().string());
                 return response.body().string();
             } 
         }
